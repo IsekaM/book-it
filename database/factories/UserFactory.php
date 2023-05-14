@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -18,7 +19,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
@@ -34,5 +36,21 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function admin(): Factory
+    {
+        return $this->state(fn (array $attributes) =>
+            [
+                'type' => UserType::ADMIN->name,
+            ]);
+    }
+
+    public function member(): Factory
+    {
+        return $this->state(fn (array $attributes) =>
+            [
+                'type' => UserType::MEMBER->name,
+            ]);
     }
 }

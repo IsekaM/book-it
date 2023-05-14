@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -18,9 +19,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'type',
     ];
 
     /**
@@ -41,4 +44,24 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Checks if the user is admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->type === UserType::ADMIN->name;
+    }
+
+    /**
+     * Checks if the user is a member
+     *
+     * @return bool
+     */
+    public function isMember(): bool
+    {
+        return $this->type === UserType::MEMBER->name;
+    }
 }
