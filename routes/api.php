@@ -20,6 +20,10 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
         Route::post("register", [AuthController::class, "register"])->name(
             "auth.register",
         );
+
+        Route::post("login", [AuthController::class, "login"])->name(
+            "auth.login",
+        );
     });
 });
 
