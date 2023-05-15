@@ -3,11 +3,23 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\User;
+use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AuthTest extends TestCase
 {
     use RefreshDatabase;
+
+    private User|Model $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->user = User::factory()->createOne();
+    }
 
     public function testUserCanRegister()
     {
@@ -22,5 +34,29 @@ class AuthTest extends TestCase
             route("api.auth.register"),
             $userData,
         )->assertJsonStructure(["success", "data" => ["token"]]);
+    }
+
+    public function testUserCanLogin()
+    {
+        $this->postJson(route("api.auth.login"), [
+            "email" => $this->user->email,
+            "password" => "password",
+        ])
+            ->assertOk()
+            ->assertJsonStructure(["success", "data" => ["token"]]);
+    }
+
+    public function testUserCannotLoginWithInvalidCredentials()
+    {
+        $this->postJson(route("api.auth.login"), [
+            "email" => $this->user->email,
+            "password" => "wrongpassword",
+        ])
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertJsonFragment([
+                "errors" => [
+                    "email" => ["These credentials do not match our records."],
+                ],
+            ]);
     }
 }
