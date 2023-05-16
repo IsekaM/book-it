@@ -146,7 +146,7 @@ class BookTest extends TestCase
     {
         Sanctum::actingAs($this->adminUser, ["*"]);
 
-        $this->postJson(route("api.books.store", $this->payload))
+        $this->postJson(route("api.books.store"), $this->payload)
             ->assertOk()
             ->assertJsonFragment($this->payload);
 
@@ -158,7 +158,8 @@ class BookTest extends TestCase
         Sanctum::actingAs($this->memberUser, ["*"]);
 
         $this->postJson(
-            route("api.books.store", $this->payload),
+            route("api.books.store"),
+            $this->payload,
         )->assertForbidden();
 
         $this->assertDatabaseMissing(Book::class, $this->payload);
