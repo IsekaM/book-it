@@ -10,4 +10,9 @@ class Book extends Model
     use HasFactory;
 
     protected $fillable = ["author", "title", "quantity", "isbn", "price"];
+
+    protected $casts = [
+        "price" => "decimal:2",
+        "quantity" => "integer",
+    ];
 }
