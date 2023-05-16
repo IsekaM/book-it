@@ -52,7 +52,11 @@ class BookController extends Controller
      */
     public function update(BookRequest $request, Book $book)
     {
-        //
+        $this->authorize("update", $book);
+
+        $book->update($request->validated());
+
+        return response()->formattedJson($book, Response::HTTP_CREATED);
     }
 
     /**
