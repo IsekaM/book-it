@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,8 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
             ->name("auth.logout")
             ->middleware("auth:sanctum");
     });
+
+    Route::apiResource("books", BookController::class);
 });
 
 Route::middleware("auth:sanctum")->get("/user", function (Request $request) {
