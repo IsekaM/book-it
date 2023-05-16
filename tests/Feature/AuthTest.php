@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Http\Response;
+use Illuminate\Testing\TestResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -19,6 +20,22 @@ class AuthTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->createOne();
+    }
+
+    private function loginUser(): TestResponse
+    {
+        return $this->postJson(route("api.auth.login"), [
+            "email" => $this->user->email,
+            "password" => "password",
+        ]);
+    }
+
+    private function logoutUser(?string $token = null): TestResponse
+    {
+        return $this->postJson(
+            route("api.auth.logout"),
+            headers: ["Authorization" => "Bearer " . $token],
+        );
     }
 
     public function testUserCanRegister()
@@ -38,10 +55,7 @@ class AuthTest extends TestCase
 
     public function testUserCanLogin()
     {
-        $this->postJson(route("api.auth.login"), [
-            "email" => $this->user->email,
-            "password" => "password",
-        ])
+        $this->loginUser()
             ->assertOk()
             ->assertJsonStructure(["success", "data" => ["token"]]);
     }
@@ -58,5 +72,17 @@ class AuthTest extends TestCase
                     "email" => ["These credentials do not match our records."],
                 ],
             ]);
+    }
+
+    public function testUserCanLogout()
+    {
+        $response = $this->loginUser();
+        $token = $response->json("data.token");
+
+        $this->assertNotEmpty($this->user->fresh()->tokens->toArray());
+
+        $this->logoutUser($token)->assertNoContent();
+
+        $this->assertEmpty($this->user->fresh()->tokens->toArray());
     }
 }
