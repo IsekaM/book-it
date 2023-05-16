@@ -113,4 +113,18 @@ class BookTest extends TestCase
 
         $this->assertDatabaseHas(Book::class, ["id" => $this->singleBook->id]);
     }
+
+    public function testUserCanViewABook()
+    {
+        $this->getJson(
+            route("api.books.show", ["book" => $this->singleBook->id]),
+        )
+            ->assertOk()
+            ->assertJsonFragment([
+                "id" => $this->singleBook->id,
+                "isbn" => $this->singleBook->isbn,
+                "author" => $this->singleBook->author,
+                "title" => $this->singleBook->title,
+            ]);
+    }
 }
