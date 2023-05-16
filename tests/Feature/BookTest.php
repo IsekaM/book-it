@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Book;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,9 +16,15 @@ class BookTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @var Book|Book[]|Collection|Model|\LaravelIdea\Helper\App\Models\_IH_Book_C
+     * @var Book|Book[]|Collection|Model
      */
     private array|Book|Collection|Model $books;
+
+    private Model $adminUser;
+
+    private Book|Model $singleBook;
+
+    private User|Model $memberUser;
 
     protected function setUp(): void
     {
@@ -25,6 +33,14 @@ class BookTest extends TestCase
         $this->books = Book::factory()
             ->count(20)
             ->create();
+
+        $this->singleBook = Book::factory()->createOne();
+
+        $this->adminUser = User::factory()
+            ->admin()
+            ->createOne();
+
+        $this->memberUser = User::factory()->createOne();
     }
 
     private function fetchBooks(?string $query = null): TestResponse
@@ -72,5 +88,29 @@ class BookTest extends TestCase
         $this->fetchBooks($randomBook->author)
             ->assertOk()
             ->assertJsonFragment(["author" => $randomBook->author]);
+    }
+
+    public function testAdminCanDeleteABook()
+    {
+        Sanctum::actingAs($this->adminUser, ["*"]);
+
+        $this->deleteJson(
+            route("api.books.destroy", ["book" => $this->singleBook]),
+        )->assertNoContent();
+
+        $this->assertDatabaseMissing(Book::class, [
+            "id" => $this->singleBook->id,
+        ]);
+    }
+
+    public function testMemberCantDeleteABook()
+    {
+        Sanctum::actingAs($this->memberUser, ["*"]);
+
+        $this->deleteJson(
+            route("api.books.destroy", ["book" => $this->singleBook]),
+        )->assertForbidden();
+
+        $this->assertDatabaseHas(Book::class, ["id" => $this->singleBook->id]);
     }
 }
