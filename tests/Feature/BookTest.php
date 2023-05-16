@@ -26,6 +26,8 @@ class BookTest extends TestCase
 
     private User|Model $memberUser;
 
+    private array $payload;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -41,6 +43,18 @@ class BookTest extends TestCase
             ->createOne();
 
         $this->memberUser = User::factory()->createOne();
+
+        $this->payload = [
+            "title" => fake()->sentence(),
+            "author" => fake()->name(),
+            "isbn" => fake()->isbn10(),
+            "price" => number_format(
+                fake()->randomFloat(2, max: 10_000),
+                2,
+                thousands_separator: "",
+            ),
+            "quantity" => fake()->randomNumber(2),
+        ];
     }
 
     private function fetchBooks(?string $query = null): TestResponse
@@ -126,5 +140,27 @@ class BookTest extends TestCase
                 "author" => $this->singleBook->author,
                 "title" => $this->singleBook->title,
             ]);
+    }
+
+    public function testAdminCanCreateABook()
+    {
+        Sanctum::actingAs($this->adminUser, ["*"]);
+
+        $this->postJson(route("api.books.store", $this->payload))
+            ->assertOk()
+            ->assertJsonFragment($this->payload);
+
+        $this->assertDatabaseHas(Book::class, $this->payload);
+    }
+
+    public function testMemberCantCreateABook()
+    {
+        Sanctum::actingAs($this->memberUser, ["*"]);
+
+        $this->postJson(
+            route("api.books.store", $this->payload),
+        )->assertForbidden();
+
+        $this->assertDatabaseMissing(Book::class, $this->payload);
     }
 }
