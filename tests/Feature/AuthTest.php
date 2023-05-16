@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Http\Response;
-use Illuminate\Testing\TestResponse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -20,22 +19,6 @@ class AuthTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->createOne();
-    }
-
-    private function loginUser(): TestResponse
-    {
-        return $this->postJson(route("api.auth.login"), [
-            "email" => $this->user->email,
-            "password" => "password",
-        ]);
-    }
-
-    private function logoutUser(?string $token = null): TestResponse
-    {
-        return $this->postJson(
-            route("api.auth.logout"),
-            headers: ["Authorization" => "Bearer " . $token],
-        );
     }
 
     public function testUserCanRegister()
@@ -55,7 +38,7 @@ class AuthTest extends TestCase
 
     public function testUserCanLogin()
     {
-        $this->loginUser()
+        $this->loginUser($this->user)
             ->assertOk()
             ->assertJsonStructure(["success", "data" => ["token"]]);
     }
@@ -76,7 +59,7 @@ class AuthTest extends TestCase
 
     public function testUserCanLogout()
     {
-        $response = $this->loginUser();
+        $response = $this->loginUser($this->user);
         $token = $response->json("data.token");
 
         $this->assertNotEmpty($this->user->fresh()->tokens->toArray());
