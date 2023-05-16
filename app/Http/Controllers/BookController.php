@@ -41,7 +41,7 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        //
+        return response()->formattedJson($book);
     }
 
     /**
