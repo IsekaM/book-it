@@ -163,4 +163,30 @@ class BookTest extends TestCase
 
         $this->assertDatabaseMissing(Book::class, $this->payload);
     }
+
+    public function testAdminCanUpdateABook()
+    {
+        Sanctum::actingAs($this->adminUser, ["*"]);
+
+        $this->putJson(
+            route("api.books.update", $this->singleBook->id),
+            $this->payload,
+        )
+            ->assertCreated()
+            ->assertJsonFragment($this->payload);
+
+        $this->assertDatabaseHas(Book::class, $this->payload);
+    }
+
+    public function testMemberCantUpdateABook()
+    {
+        Sanctum::actingAs($this->memberUser, ["*"]);
+
+        $this->putJson(
+            route("api.books.update", $this->singleBook->id),
+            $this->payload,
+        )->assertForbidden();
+
+        $this->assertDatabaseMissing(Book::class, $this->payload);
+    }
 }
