@@ -24,6 +24,10 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
         Route::post("login", [AuthController::class, "login"])->name(
             "auth.login",
         );
+
+        Route::post("logout", [AuthController::class, "logout"])
+            ->name("auth.logout")
+            ->middleware("auth:sanctum");
     });
 });
 
