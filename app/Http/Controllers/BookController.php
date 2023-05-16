@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,5 +57,10 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
+        $this->authorize("delete", $book);
+
+        $book->delete();
+
+        return response()->formattedJson(null, Response::HTTP_NO_CONTENT);
     }
 }
