@@ -12,7 +12,13 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
-        $user = User::create($request->validated());
+        $hashedPassword = bcrypt($request->get("password"));
+
+        $user = User::create(
+            $request->except("password") + [
+                "password" => $hashedPassword,
+            ],
+        );
 
         return response()->formattedJson([
             "token" => $user->createToken("app")->plainTextToken,
