@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -34,6 +36,19 @@ class AuthTest extends TestCase
             route("api.auth.register"),
             $userData,
         )->assertJsonStructure(["success", "data" => ["token"]]);
+
+        $this->assertDatabaseHas(
+            User::class,
+            Arr::except($userData, ["password"]),
+        );
+
+        // Check if password is hashed
+        $this->assertTrue(
+            Hash::check(
+                $userData["password"],
+                User::where("email", $userData["email"])->first()->password,
+            ),
+        );
     }
 
     public function testUserCanLogin()
