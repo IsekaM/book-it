@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Book extends Model
 {
@@ -15,4 +16,11 @@ class Book extends Model
         "price" => "decimal:2",
         "quantity" => "integer",
     ];
+
+    public function carts(): BelongsToMany
+    {
+        return $this->belongsToMany(Cart::class)
+            ->withPivot(["quantity"])
+            ->withTimestamps();
+    }
 }
