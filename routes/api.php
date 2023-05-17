@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,8 +32,17 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
     });
 
     Route::apiResource("books", BookController::class);
-});
 
-Route::middleware("auth:sanctum")->get("/user", function (Request $request) {
-    return $request->user();
+    Route::group(
+        ["prefix" => "carts", "middleware" => "auth:sanctum"],
+        function () {
+            Route::post("add/{book}", [CartController::class, "add"])->name(
+                "cart.add",
+            );
+            Route::post("remove/{book}", [
+                CartController::class,
+                "remove",
+            ])->name("cart.remove");
+        },
+    );
 });
