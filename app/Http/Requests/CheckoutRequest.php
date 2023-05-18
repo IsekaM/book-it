@@ -25,27 +25,38 @@ class CheckoutRequest extends FormRequest
      */
     public function rules(): array
     {
+        $requiredIfOrderIsEmpty = Rule::requiredIf(
+            empty($this->route("cart")?->order),
+        );
+
         return [
-            "user_id" => ["required", "exists:App\Models\User,id"],
-            "address_line_1" => ["string", "required"],
-            "address_line_2" => ["string", "nullable"],
-            "city" => ["string", "required"],
-            "parish" => ["string", "required"],
-            "phone_number" => ["string", "required"],
-            "status" => ["string", Rule::in([OrderStatus::PROCESSING->name])],
+            "user_id" => ["exists:App\Models\User,id", $requiredIfOrderIsEmpty],
+            "address_line_1" => ["string", $requiredIfOrderIsEmpty],
+            "address_line_2" => ["string", "nullable", $requiredIfOrderIsEmpty],
+            "city" => ["string", $requiredIfOrderIsEmpty],
+            "parish" => ["string", $requiredIfOrderIsEmpty],
+            "phone_number" => ["string", $requiredIfOrderIsEmpty],
+            "status" => [
+                "string",
+                Rule::in([OrderStatus::PROCESSING->name]),
+                $requiredIfOrderIsEmpty,
+            ],
             "payment_method" => [
                 "string",
                 Rule::in(PaymentMethod::CREDIT_CARD->name),
+                $requiredIfOrderIsEmpty,
             ],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            "user_id" => $this->user()->id,
-            "status" => OrderStatus::PROCESSING->name,
-            "payment_method" => PaymentMethod::CREDIT_CARD->name,
-        ]);
+        if (empty($this->route("cart")?->order)) {
+            $this->merge([
+                "user_id" => $this->user()->id,
+                "status" => OrderStatus::PROCESSING->name,
+                "payment_method" => PaymentMethod::CREDIT_CARD->name,
+            ]);
+        }
     }
 }
