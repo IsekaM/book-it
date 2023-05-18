@@ -11,6 +11,11 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        "total" => "decimal:2",
+        "subtotal" => "decimal:2",
+        "fees" => "decimal:2",
+    ];
     protected $fillable = [
         "user_id",
         "status",
@@ -24,6 +29,9 @@ class Order extends Model
         "card",
         "payment_date",
         "cart_id",
+        "total",
+        "subtotal",
+        "fees",
     ];
 
     public function user(): BelongsTo
