@@ -22,7 +22,7 @@ class GetPaymentDetails
     private function getTotalAmount(Cart $cart)
     {
         $amount = 0;
-        $newOrder = !$cart->order;
+        $newOrder = $cart->order->books->isEmpty();
 
         if ($newOrder) {
             foreach ($cart->books as $book) {
@@ -39,6 +39,8 @@ class GetPaymentDetails
         if (!$newOrder) {
             $amount = $cart->order->books->sum("pivot.price");
         }
+
+        $cart->order()->update(["subtotal" => $amount]);
 
         return $amount;
     }
