@@ -141,7 +141,16 @@ class CartController extends Controller
             CURLOPT_RETURNTRANSFER => true,
         ]);
         $result = curl_exec($curl);
+        $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
+
+        if ($statusCode != 200) {
+            return \response()->formattedJson(
+                null,
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                "Something went wrong while processing your payment.",
+            );
+        }
 
         $result = json_decode($result, true);
 
