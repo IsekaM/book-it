@@ -2,14 +2,14 @@
 
 namespace App\Actions\Cart;
 
-use App\Models\Cart;
+use App\Models\Order;
 use App\Enums\OrderStatus;
 
 class CheckIfOrderIsProcessed
 {
-    public function execute(Cart $cart): void
+    public function execute(Order $order): void
     {
-        if ($cart->order->status != OrderStatus::PROCESSING->name) {
+        if ($order->status != OrderStatus::PROCESSING->name) {
             throw new \Exception("Order has already been processed.");
         }
     }

@@ -17,7 +17,7 @@ class CheckoutItemsInCart
     public function execute(Cart $cart): WiPayResponse
     {
         $this->checkIfItemsInCart->execute($cart);
-        $this->checkIfOrderIsProcessed->execute($cart);
+        $this->checkIfOrderIsProcessed->execute($cart->order);
         return $this->getPaymentDetails->execute($cart);
     }
 }
