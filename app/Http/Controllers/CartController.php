@@ -12,6 +12,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\CheckoutRequest;
+use App\Actions\Cart\CheckoutItemsInCart;
+use Symfony\Component\CssSelector\Exception\InternalErrorException;
 
 class CartController extends Controller
 {
@@ -70,95 +72,36 @@ class CartController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function checkout(CheckoutRequest $request, Cart $cart)
-    {
-        $cart->load(["order", "books"]);
+    public function checkout(
+        CheckoutRequest $request,
+        Cart $cart,
+        CheckoutItemsInCart $checkoutItemsInCart,
+    ) {
+        try {
+            $cart->load(["order", "books"]);
 
-        $newOrder = !$cart->order;
-        $order =
-            $cart->order ??
-            Order::create($request->validated() + ["cart_id" => $cart->id]);
-        $amount = 0;
-
-        if ($cart->books->isEmpty()) {
-            return response()->formattedJson(
-                null,
-                Response::HTTP_BAD_REQUEST,
-                "No items in cart",
-            );
-        }
-
-        if ($order->status != OrderStatus::PROCESSING->name) {
-            return response()->formattedJson(
-                null,
-                Response::HTTP_BAD_REQUEST,
-                "Order has already been processed.",
-            );
-        }
-
-        if ($newOrder) {
-            foreach ($cart->books as $book) {
-                $priceForBook = $book->price * $book->pivot->quantity;
-                $amount += $priceForBook;
-
-                $order->books()->attach($book->id, [
-                    "quantity" => $book->pivot->quantity,
-                    "price" => $priceForBook,
-                ]);
+            if (!$cart->order) {
+                $cart->order = Order::create(
+                    $request->validated() + ["cart_id" => $cart->id],
+                );
             }
-        }
 
-        if (!$newOrder) {
-            $amount = $order->books->sum("pivot.price");
-        }
+            $response = $checkoutItemsInCart->execute($cart);
 
-        $curl = curl_init(
-            "https://jm.wipayfinancial.com/plugins/payments/request",
-        );
-
-        curl_setopt_array($curl, [
-            CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_HEADER => false,
-            CURLOPT_HTTPHEADER => [
-                "Accept: application/json",
-                "Content-Type: application/x-www-form-urlencoded",
-            ],
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => http_build_query([
-                "account_number" => config("wipay.account_number"),
-                "avs" => "0",
-                "country_code" => "JM",
-                "currency" => "JMD",
-                "data" => '{"a":"b"}',
-                "environment" => "sandbox",
-                "fee_structure" => "customer_pay",
-                "method" => "credit_card",
-                "order_id" => $order->id,
-                "origin" => "Book_It_App",
-                "response_url" => route("api.cart.complete-payment"),
-                "total" => $amount,
-            ]),
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-        $result = curl_exec($curl);
-        $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        if ($statusCode != 200) {
-            return \response()->formattedJson(
+            return response()->formattedJson(["payment_url" => $response->url]);
+        } catch (InternalErrorException $internalErrorException) {
+            return response()->formattedJson(
                 null,
                 Response::HTTP_INTERNAL_SERVER_ERROR,
-                "Something went wrong while processing your payment.",
+                $internalErrorException->getMessage(),
+            );
+        } catch (\Exception $exception) {
+            return response()->formattedJson(
+                null,
+                Response::HTTP_BAD_REQUEST,
+                $exception->getMessage(),
             );
         }
-
-        $result = json_decode($result, true);
-
-        $order->update(["transaction_id" => $result["transaction_id"]]);
-
-        $cart->update(["status" => CartStatus::CLOSED->name]);
-
-        return response()->formattedJson(["payment_url" => $result["url"]]);
     }
 
     public function completePayment(Request $request)
