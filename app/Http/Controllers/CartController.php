@@ -24,7 +24,10 @@ class CartController extends Controller
      */
     public function add(Request $request, Book $book)
     {
-        $cart = Cart::firstOrCreate(["user_id" => $request->user()->id]);
+        $cart = Cart::firstOrCreate([
+            "user_id" => $request->user()->id,
+            "status" => CartStatus::OPENED->name,
+        ]);
 
         $cart->books()->syncWithoutDetaching($book->id);
 
