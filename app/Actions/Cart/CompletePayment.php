@@ -11,6 +11,7 @@ class CompletePayment
         private readonly CheckIfDataIsMissingWhenCompletingPayment $checkIfDataIsMissingWhenCompletingPayment,
         private readonly CheckIfPaymentFailed $checkIfPaymentFailed,
         private readonly CheckIfOrderIsProcessed $checkIfOrderIsProcessed,
+        private readonly ReduceBookQuantity $reduceBookQuantity,
         private readonly UpdateOrderWithPaymentDetails $updateOrderWithPaymentDetails,
     ) {
     }
@@ -23,6 +24,7 @@ class CompletePayment
         );
         $this->checkIfOrderIsProcessed->execute($order);
         $this->checkIfPaymentFailed->execute($data, $order);
+        $this->reduceBookQuantity->execute($order);
         $this->updateOrderWithPaymentDetails->execute($data, $order);
     }
 }
