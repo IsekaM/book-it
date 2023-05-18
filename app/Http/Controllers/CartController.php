@@ -6,13 +6,13 @@ use App\Models\Book;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Enums\CartStatus;
-use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\JsonResponse;
+use App\Actions\Cart\CompletePayment;
 use App\Http\Requests\CheckoutRequest;
 use App\Actions\Cart\CheckoutItemsInCart;
+use App\DataTransferObjects\Cart\CompletePaymentData;
 use Symfony\Component\CssSelector\Exception\InternalErrorException;
 
 class CartController extends Controller
@@ -104,59 +104,25 @@ class CartController extends Controller
         }
     }
 
-    public function completePayment(Request $request)
-    {
-        $transactionId = $request->query("transaction_id");
-        $orderId = $request->query("order_id");
-        $date = $request->query("date");
-        $card = $request->query("card");
-        $status = $request->query("status");
-        $total = $request->query("total");
-        $order = Order::where("transaction_id", $transactionId)
-            ->where("id", $orderId)
-            ->first();
+    public function completePayment(
+        Request $request,
+        CompletePayment $completePayment,
+    ) {
+        try {
+            $data = CompletePaymentData::fromArray($request->query());
+            $order = Order::where("transaction_id", $data->transactionId)
+                ->where("id", $data->orderId)
+                ->first();
 
-        if (
-            !$transactionId ||
-            !$orderId ||
-            !$date ||
-            !$order ||
-            !$status ||
-            !$total
-        ) {
-            return response()->formattedJson(
+            $completePayment->execute($data, $order);
+
+            return response()->formattedJson($order);
+        } catch (\Exception $exception) {
+            return \response()->formattedJson(
                 null,
                 Response::HTTP_BAD_REQUEST,
-                "Important data missing.",
+                $exception->getMessage(),
             );
         }
-
-        if ($order->status !== OrderStatus::PROCESSING->name) {
-            return response()->formattedJson(
-                null,
-                Response::HTTP_BAD_REQUEST,
-                "This order has already been processed.",
-            );
-        }
-
-        if ($status === "failed") {
-            $order->update(["status" => OrderStatus::PAYMENT_FAILED->name]);
-
-            return response()->formattedJson(
-                null,
-                Response::HTTP_BAD_REQUEST,
-                "Payment failed.",
-            );
-        }
-
-        $order->update([
-            "status" => OrderStatus::PAID->name,
-            "payment_date" => Carbon::parse($date)->toDateTimeString(),
-            "card" => $card,
-            "total" => $total,
-            "fees" => $total - $order->subtotal,
-        ]);
-
-        return response()->formattedJson($order);
     }
 }
