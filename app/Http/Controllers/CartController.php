@@ -111,11 +111,19 @@ class CartController extends Controller
         $date = $request->query("date");
         $card = $request->query("card");
         $status = $request->query("status");
+        $total = $request->query("total");
         $order = Order::where("transaction_id", $transactionId)
             ->where("id", $orderId)
             ->first();
 
-        if (!$transactionId || !$orderId || !$date || !$order || !$status) {
+        if (
+            !$transactionId ||
+            !$orderId ||
+            !$date ||
+            !$order ||
+            !$status ||
+            !$total
+        ) {
             return response()->formattedJson(
                 null,
                 Response::HTTP_BAD_REQUEST,
@@ -145,6 +153,8 @@ class CartController extends Controller
             "status" => OrderStatus::PAID->name,
             "payment_date" => Carbon::parse($date)->toDateTimeString(),
             "card" => $card,
+            "total" => $total,
+            "fees" => $total - $order->subtotal,
         ]);
 
         return response()->formattedJson($order);
