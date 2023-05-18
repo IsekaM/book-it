@@ -26,6 +26,8 @@ class CartController extends Controller
      */
     public function add(Request $request, Book $book)
     {
+        $this->authorize("add", Cart::class);
+
         $cart = Cart::firstOrCreate([
             "user_id" => $request->user()->id,
             "status" => CartStatus::OPENED->name,
@@ -46,8 +48,16 @@ class CartController extends Controller
         return response()->formattedJson($cart);
     }
 
+    /**
+     * Shows a single
+     *
+     * @param  Request  $request
+     * @return JsonResponse
+     */
     public function show(Request $request)
     {
+        $this->authorize("show", Cart::class);
+
         return response()->formattedJson(
             Cart::with("books:id,author,title,price,isbn")->firstWhere([
                 "user_id" => $request->user()->id,
@@ -65,6 +75,8 @@ class CartController extends Controller
      */
     public function remove(Request $request, Book $book)
     {
+        $this->authorize("remove", Cart::class);
+
         $cart = Cart::firstOrCreate([
             "user_id" => $request->user()->id,
             "status" => CartStatus::OPENED->name,
@@ -78,13 +90,20 @@ class CartController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Gets a checkout link from WiPay
+     *
+     * @param  CheckoutRequest  $request
+     * @param  Cart  $cart
+     * @param  CheckoutItemsInCart  $checkoutItemsInCart
+     * @return JsonResponse
      */
     public function checkout(
         CheckoutRequest $request,
         Cart $cart,
         CheckoutItemsInCart $checkoutItemsInCart,
     ) {
+        $this->authorize("checkout", $cart);
+
         try {
             $cart->load(["order", "books"]);
 
@@ -112,6 +131,13 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * Marks order as PAID and updates the order's total and fees
+     *
+     * @param  Request  $request
+     * @param  CompletePayment  $completePayment
+     * @return JsonResponse
+     */
     public function completePayment(
         Request $request,
         CompletePayment $completePayment,
