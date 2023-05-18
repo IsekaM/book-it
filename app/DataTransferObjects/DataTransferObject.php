@@ -2,6 +2,7 @@
 
 namespace App\DataTransferObjects;
 
+use ReflectionProperty;
 use ReflectionException;
 use Illuminate\Support\Str;
 
