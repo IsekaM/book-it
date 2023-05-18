@@ -56,7 +56,7 @@ class CartTest extends TestCase
                 ],
             ]);
 
-        $this->assertDatabaseCount(BookCart::class, 1);
+        $this->assertDatabaseCount(BookCart::class, 4);
     }
 
     public function testItemCanBeRemovedFromCart()

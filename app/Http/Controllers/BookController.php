@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class BookController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware("auth:sanctum")->except(["index", "show"]);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -64,7 +69,7 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        $this->authorize("delete", $book);
+        $this->authorize("delete", Book::class);
 
         $book->delete();
 

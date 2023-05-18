@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,13 +37,34 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
     Route::group(
         ["prefix" => "carts", "middleware" => "auth:sanctum"],
         function () {
+            Route::get("/", [CartController::class, "show"])->name("cart.show");
+
+            Route::post("checkout/{cart}", [
+                CartController::class,
+                "checkout",
+            ])->name("cart.checkout");
+
+            Route::get("complete-payment", [
+                CartController::class,
+                "completePayment",
+            ])
+                ->withoutMiddleware("auth:sanctum")
+                ->name("cart.complete-payment");
+
             Route::post("add/{book}", [CartController::class, "add"])->name(
                 "cart.add",
             );
+
             Route::post("remove/{book}", [
                 CartController::class,
                 "remove",
             ])->name("cart.remove");
         },
     );
+
+    Route::group(["prefix" => "orders"], function () {
+        Route::apiResource("", OrderController::class)
+            ->except("store")
+            ->middleware("auth:sanctum");
+    });
 });

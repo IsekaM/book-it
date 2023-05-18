@@ -23,4 +23,11 @@ class Book extends Model
             ->withPivot(["quantity"])
             ->withTimestamps();
     }
+
+    public function orders(): BelongsToMany
+    {
+        return $this->belongsToMany(Order::class)
+            ->withPivot(["quantity", "price"])
+            ->withTimestamps();
+    }
 }
