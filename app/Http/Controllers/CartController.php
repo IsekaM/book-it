@@ -31,6 +31,14 @@ class CartController extends Controller
             "status" => CartStatus::OPENED->name,
         ]);
 
+        if ($book->quantity == 0) {
+            return response()->formattedJson(
+                null,
+                Response::HTTP_BAD_REQUEST,
+                "Book out of stock.",
+            );
+        }
+
         $cart->books()->syncWithoutDetaching($book->id);
 
         $cart->load("books:id,author,title,price,isbn");
