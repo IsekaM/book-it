@@ -23,7 +23,7 @@ class BookFactory extends Factory
             "isbn" => fake()
                 ->unique()
                 ->isbn10(),
-            "price" => fake()->randomFloat(2, max: 10_000_000),
+            "price" => fake()->randomFloat(2, max: 5000),
             "quantity" => fake()->randomNumber(2),
         ];
     }
