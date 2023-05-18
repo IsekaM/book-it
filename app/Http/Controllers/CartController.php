@@ -81,9 +81,9 @@ class CartController extends Controller
             $cart->load(["order", "books"]);
 
             if (!$cart->order) {
-                $cart->order = Order::create(
-                    $request->validated() + ["cart_id" => $cart->id],
-                );
+                Order::create($request->validated() + ["cart_id" => $cart->id]);
+
+                $cart->load(["order", "books"]);
             }
 
             $response = $checkoutItemsInCart->execute($cart);
@@ -116,7 +116,10 @@ class CartController extends Controller
 
             $completePayment->execute($data, $order);
 
-            return response()->formattedJson($order);
+            return response()->formattedJson(
+                $order,
+                message: "Payment completed successfully.",
+            );
         } catch (\Exception $exception) {
             return \response()->formattedJson(
                 null,

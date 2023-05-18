@@ -40,7 +40,7 @@ class GetPaymentDetails
             $amount = $cart->order->books->sum("pivot.price");
         }
 
-        $cart->order()->update(["subtotal" => $amount]);
+        $cart->order->update(["subtotal" => $amount]);
 
         return $amount;
     }
