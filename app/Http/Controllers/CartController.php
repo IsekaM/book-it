@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Enums\CartStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
 use App\Actions\Cart\CompletePayment;
 use App\Http\Requests\CheckoutRequest;
 use App\Actions\Cart\CheckoutItemsInCart;
@@ -18,11 +17,10 @@ use Symfony\Component\CssSelector\Exception\InternalErrorException;
 class CartController extends Controller
 {
     /**
-     * Adds a book to the user's cart
-     *
-     * @param  Request  $request
-     * @param  Book  $book
-     * @return JsonResponse
+     * @lrd:start
+     * # Add Book To Cart
+     * Adds a book to the user's open/active cart
+     * @lrd:end
      */
     public function add(Request $request, Book $book)
     {
@@ -49,10 +47,10 @@ class CartController extends Controller
     }
 
     /**
-     * Shows a single
-     *
-     * @param  Request  $request
-     * @return JsonResponse
+     * @lrd:start
+     * # Get A User's Cart
+     * Fetches the user's active cart and lists the books inside it
+     * @lrd:end
      */
     public function show(Request $request)
     {
@@ -67,11 +65,10 @@ class CartController extends Controller
     }
 
     /**
-     * Removes a book from the user's cart
-     *
-     * @param  Request  $request
-     * @param  Book  $book
-     * @return JsonResponse
+     * @lrd:start
+     * # Remove Item From Cart
+     * Deletes a book from the user's active/open cart
+     * @lrd:end
      */
     public function remove(Request $request, Book $book)
     {
@@ -90,12 +87,11 @@ class CartController extends Controller
     }
 
     /**
-     * Gets a checkout link from WiPay
-     *
-     * @param  CheckoutRequest  $request
-     * @param  Cart  $cart
-     * @param  CheckoutItemsInCart  $checkoutItemsInCart
-     * @return JsonResponse
+     * @lrd:start
+     * # Get Payment Link
+     * Gets a WiPay link that can be used to pay
+     * for books in the specified cart
+     * @lrd:end
      */
     public function checkout(
         CheckoutRequest $request,
@@ -132,11 +128,13 @@ class CartController extends Controller
     }
 
     /**
-     * Marks order as PAID and updates the order's total and fees
-     *
-     * @param  Request  $request
-     * @param  CompletePayment  $completePayment
-     * @return JsonResponse
+     * @lrd:start
+     * # Complete Payment
+     * A response route/webhook that WiPay sends a response to
+     * after a payment is completed. When this route is accessed with
+     * the correct query params, the user's order is marked as PAID and
+     * the total and fees are updated
+     * @lrd:end
      */
     public function completePayment(
         Request $request,
