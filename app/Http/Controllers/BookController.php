@@ -16,7 +16,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * @lrd:start
+     * # Get All Books
+     * This endpoint gets all books as a paginated list
+     * @lrd:end
      */
     public function index(Request $request)
     {
@@ -33,7 +36,11 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @lrd:start
+     * # Get All Books
+     * Stores a newly created book. This endpoint is
+     * accessible by admins only
+     * @lrd:end
      */
     public function store(BookRequest $request)
     {
@@ -45,7 +52,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @lrd:start
+     * # Show A Single Book
+     * Shows a specified book
+     * @lrd:end
      */
     public function show(Book $book)
     {
@@ -53,7 +63,10 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @lrd:start
+     * # Update A Single Book
+     * Updates a specified book. This is accessible by admins only
+     * @lrd:end
      */
     public function update(BookRequest $request, Book $book)
     {
@@ -65,7 +78,10 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @lrd:start
+     * # Deletes a single book
+     * Deletes a specified book from database
+     * @lrd:end
      */
     public function destroy(Book $book)
     {
