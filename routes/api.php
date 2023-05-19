@@ -62,10 +62,12 @@ Route::group(["prefix" => "v1", "as" => "api."], function () {
         },
     );
 
-    Route::group(
-        ["prefix" => "orders", "middleware" => "auth:sanctum"],
-        function () {
-            Route::get("", [OrderController::class, "index"]);
-        },
-    );
+    Route::get("/orders/user/{user}", [
+        OrderController::class,
+        "indexUser",
+    ])->middleware("auth:sanctum");
+
+    Route::apiResource("/orders", OrderController::class)
+        ->except(["update", "store"])
+        ->middleware("auth:sanctum");
 });
